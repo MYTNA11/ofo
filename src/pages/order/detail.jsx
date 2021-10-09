@@ -10,7 +10,7 @@ const FormItem = Form.Item;
 
 export default class Detail extends Component {
     state = {
-       
+
     }
 
     componentDidMount() {
@@ -42,14 +42,15 @@ export default class Detail extends Component {
         this.map = new window.BMapGL.Map("orderDetailMap", { enableMapClick: false });
         this.addMapControl();//添加地图控件
         this.drawBikeRoute(result.position_list);//调用绘制用户的行驶路线图方法
-        console.log("result.position_list>>>",result.position_list);
-
+        // console.log("result.position_list>>>", result.position_list);
+        //调用服务区绘制方法
+        this.drwaServiceArea(result.area);
     }
     //添加地图控件
     addMapControl = () => {
         let map = this.map;
         map.addControl(new window.BMapGL.ScaleControl({ anchor: window.BMAP_ANCHOR_TOP_RIGHT }));// 添加比例尺控件
-        map.centerAndZoom(new window.BMapGL.Point(116.404, 39.915), 11); // 初始化地图,设置中心点坐标和地图级别
+        // map.centerAndZoom(new window.BMapGL.Point(116.404, 39.915), 11); // 初始化地图,设置中心点坐标和地图级别
         map.addControl(new window.BMapGL.ZoomControl());  // 添加缩放控件
         map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
     }
@@ -59,16 +60,16 @@ export default class Detail extends Component {
         let map = this.map;
         let startPoint = '';
         let endPoint = '';
-        
+
         if (position_list.length > 0) {//路线长度大于0--用户有行驶轨迹
             let first = position_list[0];//起始坐标点
-            let last = position_list[position_list.length-1];//終點坐标点
+            let last = position_list[position_list.length - 1];//終點坐标点
 
             //创建一个起始坐标点
-            
+
             startPoint = new window.BMapGL.Point(first.lon, first.lat);
-            console.log("startPoint>>>",startPoint);
-            let startIcon = new window.BMapGL.Icon('/assets/start_point.png', new window.BMapGL.Size(36,42),//new Icon 需要的空间
+            console.log("startPoint>>>", startPoint);
+            let startIcon = new window.BMapGL.Icon('/assets/start_point.png', new window.BMapGL.Size(36, 42),//new Icon 需要的空间
                 {
                     imageSize: new window.BMapGL.Size(36, 42),//空间内图片的大小
                     anchor: new window.BMapGL.Size(36, 42)//停靠的位置
@@ -80,8 +81,8 @@ export default class Detail extends Component {
 
             //创建一个終點坐标点
             endPoint = new window.BMapGL.Point(last.lon, last.lat);
-            console.log("endPoint>>>",endPoint);
-            let endIcon = new window.BMapGL.Icon('/assets/end_point.png', new window.BMapGL.Size(36,42),//new Icon 需要的空间
+            console.log("endPoint>>>", endPoint);
+            let endIcon = new window.BMapGL.Icon('/assets/end_point.png', new window.BMapGL.Size(36, 42),//new Icon 需要的空间
                 {
                     imageSize: new window.BMapGL.Size(36, 42),//空间内图片的大小
                     anchor: new window.BMapGL.Size(36, 42)//停靠的位置
@@ -92,20 +93,44 @@ export default class Detail extends Component {
             this.map.addOverlay(endMarker);
 
             //連接路線圖
-            let trackPoint=[];//保存所有轨迹坐标点
-            for(let i=0;i<position_list.length;i++){
-                let point=position_list[i];
-                trackPoint.push(new window.BMapGL.Point(point.lon,point.lat));
+            let trackPoint = [];//保存所有轨迹坐标点
+            for (let i = 0; i < position_list.length; i++) {
+                let point = position_list[i];
+                trackPoint.push(new window.BMapGL.Point(point.lon, point.lat));
             }
-            let polyline= new window.BMapGL.Polyline(trackPoint,{
-                strokeColor:'#1869AD',
-                strokeWeight:2,
-                strokeOpacity:1
+            let polyline = new window.BMapGL.Polyline(trackPoint, {
+                strokeColor: '#1869AD',
+                strokeWeight: 2,
+                strokeOpacity: 1,
+                
             })
+            //骑行路线
             this.map.addOverlay(polyline);
+
+            // console.log("trackPoint>>>>>",trackPoint);
+            // 根据用户骑行状态动态控制地图视野中心点
+            this.map.centerAndZoom(endPoint, 11);
+        }
+    }
+    //绘制单车服务区
+    drwaServiceArea = (position_list) => {
+        //連接路線圖
+        let trackPoint = [];//保存所有轨迹坐标点
+        for (let i = 0; i < position_list.length; i++) {
+            let point = position_list[i];
+            trackPoint.push(new window.BMapGL.Point(point.lon, point.lat));
         }
 
+        let polygon = new window.BMapGL.Polygon(trackPoint, {
+            StrokeColor: '#ce0000',
+            StrokeWeight: 4,
+            StrokeOpacity: 1,
+            FillColor: '#ff8605',
+            FillOpacity: '0.4'
+        })
+        this.map.addOverlay(polygon);
     }
+
 
     render() {
 

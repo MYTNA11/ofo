@@ -4,6 +4,7 @@ import { Select } from 'antd'
 const Option = Select.Option
 
 export default {
+	//获取时间
 	fromateDate(time) {
 		if (!time) return '';  //判断如果没有时间，则直接返回空
 		let date = new Date(time)
@@ -29,18 +30,32 @@ export default {
 		}
 	},
 
-	//
-	getOptionList(data) {
-		if (!data) {
+	// //孟--optionList封装
+	// getOptionList(data) {
+	// 	if (!data) {
+	// 		return [];
+	// 	}
+	// 	let options = []
+	// 	data.map((item) => {
+	// 		options.push(<Option value={item.id} key={item.id}>{item.name}</Option>)
+	// 	})
+	// 	return options;
+	// },
+
+	//飞--optionList封装
+	getOptionList(data){
+		if(!data){
 			return [];
 		}
-		let options = []
-		data.map((item) => {
-			options.push(<Option value={item.id} key={item.id}>{item.name}</Option>)
+		//list:[{id:'0',name:'全部'},{id:'1',name:'北京'},{id:'2',name:'天津'},{id:'3',name:'深圳'}]
+		let option = [<Option value="0" key="all_key"></Option>];
+		return data.map((item)=>{
+			option.push(<Option value={item.id} key={item.id}>{item.name}</Option>)
 		})
-		return options;
 	},
 
+
+	//更新selectItemf封装
 	updateSelectedItem(selectedRowKeys, selectedItem, selectedIds) {
 		alert()
 		if (selectedIds) {

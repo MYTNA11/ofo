@@ -3,6 +3,7 @@ import { Card, Form, Button, Select, Table, Modal, message,DatePicker } from 'an
 import axios from '../../axios';
 import '../../style/common.less';
 import Utils from '../../utils/utils';
+import BaseForm from '../../components/BaseForm'
 
 const Option = Select.Option;
 const FormItem = Form.Item;
@@ -18,7 +19,36 @@ export default class Order extends Component {
     params = {
         page: 1
     }
+    formList=[
+        {
+            type:'SELECT',
+            label:'城市',
+            field:'city',
+            placeholder:'全部',
+            initialValue:'1',
+            width:100,
+            list:[{id:'0',name:'全部'},{id:'1',name:'北京'},{id:'2',name:'天津'},{id:'3',name:'深圳'}]
+        },
+        {
+            type:'时间查询',
+        },
+        {
+            type:'SELECT',
+            label:'订单状态',
+            field:'order_status',
+            placeholder:'全部',
+            initialValue:'1',
+            width:100,
+            list:[{id:'0',name:'全部'},{id:'1',name:'进行中'},{id:'2',name:'结束行程'}]
+        }
+    ]
+    //请求列表
     componentDidMount(){
+        this.requestList();
+    }
+
+    handdleFilter=(params)=>{
+        this.params=params;
         this.requestList();
     }
 
@@ -194,7 +224,7 @@ export default class Order extends Component {
         return (
             <div>
                 <Card>
-                    <FilterForm />
+                    <BaseForm formList={this.formList} filterSubmit={this.handdleFilter} />
                 </Card>
                 <Card style={{marginTop:10}}>
                     <Button type="primary" onClick={this.openOrderDetail}>订单详情</Button>
@@ -256,9 +286,16 @@ export default class Order extends Component {
 }
 
 class FilterForm extends Component {
+    onFinish=values=>{
+        let userInfo=this.props.from.getFieldsValue();
+        console.log(JSON.stringify(values));
+    }
+    //通过ref获取Form字段值
+    formRef=React.createRef();
+
     render() {
         return (
-            <Form layout="inline">
+            <Form ref={this.formRef}  onFinish={this.onFinish} layout="inline">
                 <FormItem label="城市" name="city_id" rules={[{
                     required: true,
                 }]}  >
@@ -286,7 +323,7 @@ class FilterForm extends Component {
                     </Select>
                 </FormItem>
 
-                <FormItem label="订单状态" name="op_mode" rules={[{
+                <FormItem label="订单状态" name="order_status" rules={[{
                     required: true,
                 }]}>
                     <Select style={{ width: 80 }}
