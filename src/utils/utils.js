@@ -48,25 +48,25 @@ export default {
 			return [];
 		}
 		//list:[{id:'0',name:'全部'},{id:'1',name:'北京'},{id:'2',name:'天津'},{id:'3',name:'深圳'}]
-		let option = [<Option value="0" key="all_key"></Option>];
-		return data.map((item)=>{
+		let option = [];
+		data.map((item)=>{
 			option.push(<Option value={item.id} key={item.id}>{item.name}</Option>)
 		})
+		return option;
 	},
 
 
 	//更新selectItemf封装
 	updateSelectedItem(selectedRowKeys, selectedItem, selectedIds) {
-		alert()
-		if (selectedIds) {
-			
+		alert("sss");
+		if (selectedIds) {//有值为多选
 			this.setState({
 				selectedRowKeys,
 				selectedItem,
 				selectedIds
 			})
 		}
-		this.setState({
+		this.setState({// 没有值为多选
 			selectedRowKeys,
 			selectedItem
 		})

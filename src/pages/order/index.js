@@ -4,6 +4,7 @@ import axios from '../../axios';
 import '../../style/common.less';
 import Utils from '../../utils/utils';
 import BaseForm from '../../components/BaseForm'
+import ETable from '../../components/ETable';
 
 const Option = Select.Option;
 const FormItem = Form.Item;
@@ -16,9 +17,11 @@ export default class Order extends Component {
         orderConfirmVisble:false,
         // selectedItem:{}
     }
+    
     params = {
         page: 1
     }
+    
     formList=[
         {
             type:'SELECT',
@@ -26,7 +29,7 @@ export default class Order extends Component {
             field:'city',
             placeholder:'全部',
             initialValue:'1',
-            width:100,
+            width:80,
             list:[{id:'0',name:'全部'},{id:'1',name:'北京'},{id:'2',name:'天津'},{id:'3',name:'深圳'}]
         },
         {
@@ -38,10 +41,19 @@ export default class Order extends Component {
             field:'order_status',
             placeholder:'全部',
             initialValue:'1',
-            width:100,
+            width:90,
             list:[{id:'0',name:'全部'},{id:'1',name:'进行中'},{id:'2',name:'结束行程'}]
+        },{
+            type:'SELECT',
+            label:'模式',
+            field:'mode',
+            placeholder:'全部',
+            initialValue:'1',
+            width:80,
+            list:[{id:'0',name:'全部'},{id:'1',name:'加盟'},{id:'2',name:'自营'}]
         }
     ]
+
     //请求列表
     componentDidMount(){
         this.requestList();
@@ -55,44 +67,44 @@ export default class Order extends Component {
     requestList = () => {
 
         let _this = this;
-        axios.ajax({
-            url: '/order/list',
-            data: {
-                params: {//使用params而不是用state的原因：
-                    // 如果使用state，state中的变量会renderDOM结构，只改变页码不需要改变DOM结构，
-                    // 页码只是参数变量，变量更改不需要DOM刷新，用普通变量即可
-                    page: this.params.page
-                }
-            },
-        }).then((res) => {
-            if (res.code == 0) {
-                let list=res.result.item_list.map((item, index) => {
-                    item.key = index;
-                    return item;
-                })
-                this.setState({
-                    list,
-                    //current--页码换页的时候，可以回调到下一次
-                    pagination: Utils.pagination(res, (current) => {
-                        _this.params.page = current;
-                        _this.requestList();
-                    })
-                })
-                console.log("res>>>>>", res);
-            }
-        })
+        axios.requestList(this,'/order/list',this.params,true)
+        // axios.ajax({
+        //     url: '/order/list',
+        //     data: {
+        //         // params: {//使用params而不是用state的原因：
+        //             // 如果使用state，state中的变量会renderDOM结构，只改变页码不需要改变DOM结构，
+        //             // 页码只是参数变量，变量更改不需要DOM刷新，用普通变量即可
+        //             params: this.params 
+        //         // }
+        //     },
+        // }).then((res) => {
+        //     if (res.code == 0) {
+        //         let list=res.result.item_list.map((item, index) => {
+        //             item.key = index;
+        //             return item;
+        //         })
+        //         this.setState({
+        //             list,
+        //             //current--页码换页的时候，可以回调到下一次
+        //             pagination: Utils.pagination(res, (current) => {
+        //                 _this.params.page = current;
+        //                 _this.requestList();
+        //             })
+        //         })
+        //         // console.log("res>>>>>", res);
+        //     }
+        // })
     }
 
-     //获取当前所点击行
-    onRowClick = (record,index)=>{
-        
-        let selectKey=[index];
-        // alert(record)
-       this.setState({
-           selectedRowKeys:selectKey,//选中行的key赋值给选中的行
-           selectedItem:record //record--获取当前所在行的字段值传给selectedItem
-       })
-    }
+    //获取当前所点击行
+    // onRowClick = (record,index)=>{
+    //     let selectKey=[index];
+    //     // alert(record)
+    //    this.setState({
+    //        selectedRowKeys:selectKey,//选中行的key赋值给选中的行
+    //        selectedItem:record //record--获取当前所在行的字段值传给selectedItem
+    //    })
+    // }
     //record-->selectedItem-->item(获取的当前所在行的字段值)
 
     //订单结束确认
@@ -140,10 +152,10 @@ export default class Order extends Component {
             }
         })
     }
-   
-    //订单详情
+    
+    //触发订单详情
     openOrderDetail=()=>{
-        // alert("s");
+        alert("s");
         let item=this.state.selectedItem;//当前所在行的字段值
         // console.log("item>>>", item);
         // debugger
@@ -218,9 +230,12 @@ export default class Order extends Component {
             labelCol:{span:5},
             wrapperCol:{span:10}
         }
+        const selectedRowKeys=this.state.selectedRowKeys;
         const rowSelection={
-            type:'radio'
+            type:'radio',
+            selectedRowKeys
         }
+
         return (
             <div>
                 <Card>
@@ -232,7 +247,18 @@ export default class Order extends Component {
                 </Card>
 
                 <div className="content-wrap">
-                    <Table
+                {/* 封装的表格 */}
+                <ETable
+                    updateSelectedItem={Utils.updateSelectedItem.bind(this)}
+                    columns={columns}//表头
+                    dataSource={this.state.list}//数据
+                    pagination={this.state.pagination}//页码
+                    selectedRowKeys={this.state.selectedRowKeys}
+                    selectedIds={this.state.selectedIds}
+                    selectedItem={this.state.selectedItem}
+                    rowSelection = 'checkbox'
+                 />
+                    {/* <Table
                             // bordered
                             updateSelectedItem={Utils.updateSelectedItem.bind(this)}
                             columns={columns}//表头
@@ -251,7 +277,7 @@ export default class Order extends Component {
                                   }, // 点击行
                                 };
                               }}
-                        />
+                        /> */}
                 </div>
 
                 <Modal title="结束订单"
@@ -279,80 +305,79 @@ export default class Order extends Component {
                         </FormItem>
                     </Form>
                  </Modal>
-
             </div>
         )
     }
 }
 
-class FilterForm extends Component {
-    onFinish=values=>{
-        let userInfo=this.props.from.getFieldsValue();
-        console.log(JSON.stringify(values));
-    }
-    //通过ref获取Form字段值
-    formRef=React.createRef();
+// class FilterForm extends Component {
+//     onFinish=values=>{
+//         let userInfo=this.props.from.getFieldsValue();
+//         console.log(JSON.stringify(values));
+//     }
+//     //通过ref获取Form字段值
+//     formRef=React.createRef();
 
-    render() {
-        return (
-            <Form ref={this.formRef}  onFinish={this.onFinish} layout="inline">
-                <FormItem label="城市" name="city_id" rules={[{
-                    required: true,
-                }]}  >
-                    <Select style={{ width: 80 }}
-                        placeholder="全部"
-                    >
-                        <Option value="1">北京</Option>
-                        <Option value="2">天津</Option>
-                        <Option value="3">深圳</Option>
-                    </Select>
-                </FormItem>
+//     render() {
+//         return (
+//             <Form ref={this.formRef}  onFinish={this.onFinish} layout="inline">
+//                 <FormItem label="城市" name="city_id" rules={[{
+//                     required: true,
+//                 }]}  >
+//                     <Select style={{ width: 80 }}
+//                         placeholder="全部"
+//                     >
+//                         <Option value="1">北京</Option>
+//                         <Option value="2">天津</Option>
+//                         <Option value="3">深圳</Option>
+//                     </Select>
+//                 </FormItem>
 
-                <FormItem label="订单时间" name="mode" rules={[{
-                    required: true,
-                }]}>
+//                 <FormItem label="订单时间" name="mode" rules={[{
+//                     required: true,
+//                 }]}>
 
-                    <DatePicker style={{marginRight:5}} format="YYYY-MM-DD HH:mm:ss"/>
+//                     <DatePicker style={{marginRight:5}} format="YYYY-MM-DD HH:mm:ss"/>
 
-                    <Select style={{ width: 130 }}
-                        placeholder="全部"
-                    >
-                        <Option value="">全部</Option>
-                        <Option value="1">指定停车点模式</Option>
-                        <Option value="2">禁停区模式</Option>
-                    </Select>
-                </FormItem>
+//                     <Select style={{ width: 130 }}
+//                         placeholder="全部"
+//                     >
+//                         <Option value="">全部</Option>
+//                         <Option value="1">指定停车点模式</Option>
+//                         <Option value="2">禁停区模式</Option>
+//                     </Select>
+//                 </FormItem>
 
-                <FormItem label="订单状态" name="order_status" rules={[{
-                    required: true,
-                }]}>
-                    <Select style={{ width: 80 }}
-                        placeholder="全部"
-                    >
-                        <Option value="">全部</Option>
-                        <Option value="1">进行中</Option>
-                        <Option value="2">结束行程</Option>
-                    </Select>
-                </FormItem>
+//                 <FormItem label="订单状态" name="order_status" rules={[{
+//                     required: true,
+//                 }]}>
+//                     <Select style={{ width: 80 }}
+//                         placeholder="全部"
+//                     >
+//                         <Option value="">全部</Option>
+//                         <Option value="1">进行中</Option>
+//                         <Option value="2">结束行程</Option>
+//                     </Select>
+//                 </FormItem>
 
-                <FormItem label="加盟商授权状态" name="auth_status" rules={[{
-                    required: true,
-                }]}>
-                    <Select style={{ width: 80 }}
-                        placeholder="全部"
-                    > 
-                        <Option value="">全部</Option>
-                        <Option value="1">已授权</Option>
-                        <Option value="2">未授权</Option>
-                    </Select>
-                </FormItem>
+//                 <FormItem label="加盟商授权状态" name="auth_status" rules={[{
+//                     required: true,
+//                 }]}>
+//                     <Select style={{ width: 80 }}
+//                         placeholder="全部"
+//                     > 
+//                         <Option value="">全部</Option>
+//                         <Option value="1">已授权</Option>
+//                         <Option value="2">未授权</Option>
+//                     </Select>
+//                 </FormItem>
 
-                <FormItem label="加盟商授权状态">
-                    <Button type="primary" style={{ margin: '0 20px' }}>查询</Button>
-                    <Button>重置</Button>
-                </FormItem>
+//                 <FormItem label="加盟商授权状态">
+//                     <Button type="primary" style={{ margin: '0 20px' }}>查询</Button>
+//                     <Button>重置</Button>
+//                 </FormItem>
 
-            </Form>
-        );
-    }
-}
+//             </Form>
+//         );
+//     }
+// }

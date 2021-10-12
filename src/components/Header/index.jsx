@@ -29,7 +29,7 @@ export default class Header extends Component {
             url:"https://devapi.qweather.com/v7/weather/now?location=101010100&key=3c27e9aa327e407793636ddb0b158dd7",
             method:"GET",
         }).then(res=>{
-            console.log(res);
+            // console.log(res);
             let data=res.data.now;
             this.setState({
                 weather:data.text,
